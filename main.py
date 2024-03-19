@@ -1,9 +1,12 @@
 import keyboard
 import pyperclip
+import os
 import time
-import googleAPI
-from plyer import notification
 from win10toast import ToastNotifier
+from googletrans import Translator
+
+# 设置环境变量，指定 ToastNotifier 后端为 win10toast.uwp.ToastNotifier
+os.environ["WIN10TOAST_BACKEND"] = "win10toast.uwp.ToastNotifier"
 
 toaster = ToastNotifier()
 # 全局变量，用于控制程序是否继续运行
@@ -29,9 +32,14 @@ def detect_language(text):
 
 
 def show_translation_notification(translated_text):
-    toaster.show_toast("翻译结果", translated_text, duration=5)
+    # 在通知中不包含图标
+    toaster.show_toast('', translated_text, duration=5, icon_path='p.ico')
 
-# 其余代码保持不变
+
+def translate(text, dest_language):
+    translator = Translator()
+    translated = translator.translate(text, dest=dest_language)
+    return translated.text
 
 
 def get_selected_text_on_hotkey(hotkey):
@@ -39,11 +47,10 @@ def get_selected_text_on_hotkey(hotkey):
         selected_text = get_selected_text()
         print("选中的文本:", selected_text)
         target_language = detect_language(selected_text)
-        translated_text = googleAPI.translate(selected_text, target_language)
+        translated_text = translate(selected_text, target_language)
         print("翻译结果:", translated_text)
-        # 显示通知
         show_translation_notification(translated_text)
-    # 添加热键监听
+
     keyboard.add_hotkey(hotkey, on_hotkey_pressed)
     print("程序已启动，请按下 {} 来获取选中的文本。".format(hotkey))
     global running
